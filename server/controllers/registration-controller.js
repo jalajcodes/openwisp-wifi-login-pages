@@ -2,7 +2,6 @@
 import axios from "axios";
 import cookie from "cookie-signature";
 import merge from "deepmerge";
-import qs from "qs";
 
 import config from "../config.json";
 import defaultConfig from "../utils/default-config";
@@ -14,43 +13,21 @@ const registration = (req, res) => {
     if (org.slug === reqOrg) {
       // merge default config and custom config
       const conf = merge(defaultConfig, org);
-      const {host, settings} = conf;
+      const { host } = conf;
       let registerUrl = conf.proxy_urls.registration;
       // replacing org_slug param with the slug
       registerUrl = registerUrl.replace("{org_slug}", org.slug);
-      const timeout = conf.timeout * 1000;
-      const {
-        username,
-        email,
-        first_name,
-        last_name,
-        birth_date,
-        location,
-        password1,
-        password2
-      } = req.body;
-      const postData = {
-        email,
-        username,
-        password1,
-        password2,
-        first_name,
-        last_name,
-        birth_date,
-        location,
-      };
-      if (settings && settings.mobile_phone_verification) {
-        postData.phone_number = req.body.phone_number;
-      }
+      const timeout = conf.timeout * 5000;
+      const { username } = req.body;
       // send request
       axios({
         method: "post",
         headers: {
-          "content-type": "application/x-www-form-urlencoded",
+          "content-type": "application/json",
         },
         url: `${host}${registerUrl}/`,
         timeout,
-        data: qs.stringify(postData),
+        data: req.body,
       })
         .then(response => {
           const authTokenCookie = cookie.sign(
@@ -68,7 +45,7 @@ const registration = (req, res) => {
             .cookie(`${conf.slug}_username`, usernameCookie, {
               maxAge: 1000 * 60 * 60 * 24,
             })
-            .send();
+            .send(response.data);
         })
         .catch(error => {
           if (error.response && error.response.status === 500) logInternalError(error);
