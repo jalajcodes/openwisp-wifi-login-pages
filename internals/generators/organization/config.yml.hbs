@@ -3,6 +3,7 @@ name: "{{name}}"
 slug: "{{slug}}"
 settings:
   mobile_phone_verification: {{mobile_phone_verification}}
+  subscriptions: {{subscriptions}}
 
 # configuration variables for the server app
 server:
@@ -13,7 +14,9 @@ server:
     password_reset: "/api/v1/{org_slug}/account/password/reset"
     password_reset_confirm: "/api/v1/{org_slug}/account/password/reset/confirm"
     registration: "/api/v1/{org_slug}/account"
+    {{#if subscriptions}}
     plans: "/api/v1/{org_slug}/plans"
+    {{/if}}
     user_auth_token: "/api/v1/{org_slug}/account/token"
     validate_auth_token: "/api/v1/{org_slug}/account/token/validate"
     authorize: "/api/v1/authorize"
@@ -192,18 +195,12 @@ client:
           type: "text"
           label:
             en: "street"
-          pattern: '[a-zA-Z@.+\-_\d]{1,150}'
-          pattern_description:
-            en: "only letters, numbers, and @/./+/-/_ characters"
           placeholder:
             en: "enter street" 
         city:
           type: "text"
           label:
             en: "city"
-          pattern: '[a-zA-Z@.+\-_\d]{1,150}'
-          pattern_description:
-            en: "only letters, numbers, and @/./+/-/_ characters"
           placeholder:
             en: "enter city" 
         tax_number:
@@ -215,19 +212,12 @@ client:
             en: "only letters, numbers, and @/./+/-/_ characters"
           placeholder:
             en: "enter tax_number" 
-        name:
-          type: "text"
-          label:
-            en: "full name"
-          pattern: '[a-zA-Z@.+\-_\d\s]{1,150}'
-          pattern_description:
-            en: "only letters, numbers, and @/./+/-/_ characters"
-          placeholder:
-            en: "enter full name" 
+
+      {{#if subscriptions}}
       plans_setting:
         text:
           en: "Select your plan below"
-        enabled: false
+      {{/if}}
       buttons:
         register:
           text:

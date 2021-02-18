@@ -180,10 +180,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                   "label": Object {
                     "en": "city",
                   },
-                  "pattern": "[a-zA-Z@.+\\\\-_\\\\d]{1,150}",
-                  "pattern_description": Object {
-                    "en": "only letters, numbers, and @/./+/-/_ characters",
-                  },
                   "placeholder": Object {
                     "en": "enter city",
                   },
@@ -258,19 +254,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                   "setting": "disabled",
                   "type": "text",
                 },
-                "name": Object {
-                  "label": Object {
-                    "en": "name",
-                  },
-                  "pattern": "[a-zA-Z@.+\\\\-_\\\\d]{1,150}",
-                  "pattern_description": Object {
-                    "en": "only letters, numbers, and @/./+/-/_ characters",
-                  },
-                  "placeholder": Object {
-                    "en": "enter name",
-                  },
-                  "type": "text",
-                },
                 "password": Object {
                   "label": Object {
                     "en": "password",
@@ -309,10 +292,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                 "street": Object {
                   "label": Object {
                     "en": "street",
-                  },
-                  "pattern": "[a-zA-Z@.+\\\\-_\\\\d]{1,150}",
-                  "pattern_description": Object {
-                    "en": "only letters, numbers, and @/./+/-/_ characters",
                   },
                   "placeholder": Object {
                     "en": "enter street",
@@ -358,7 +337,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                 },
               },
               "plans_setting": Object {
-                "enabled": false,
                 "text": Object {
                   "en": "Select your plan below",
                 },
@@ -595,10 +573,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                     "label": Object {
                       "en": "city",
                     },
-                    "pattern": "[a-zA-Z@.+\\\\-_\\\\d]{1,150}",
-                    "pattern_description": Object {
-                      "en": "only letters, numbers, and @/./+/-/_ characters",
-                    },
                     "placeholder": Object {
                       "en": "enter city",
                     },
@@ -673,19 +647,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                     "setting": "disabled",
                     "type": "text",
                   },
-                  "name": Object {
-                    "label": Object {
-                      "en": "name",
-                    },
-                    "pattern": "[a-zA-Z@.+\\\\-_\\\\d]{1,150}",
-                    "pattern_description": Object {
-                      "en": "only letters, numbers, and @/./+/-/_ characters",
-                    },
-                    "placeholder": Object {
-                      "en": "enter name",
-                    },
-                    "type": "text",
-                  },
                   "password": Object {
                     "label": Object {
                       "en": "password",
@@ -724,10 +685,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                   "street": Object {
                     "label": Object {
                       "en": "street",
-                    },
-                    "pattern": "[a-zA-Z@.+\\\\-_\\\\d]{1,150}",
-                    "pattern_description": Object {
-                      "en": "only letters, numbers, and @/./+/-/_ characters",
                     },
                     "placeholder": Object {
                       "en": "enter street",
@@ -773,7 +730,6 @@ exports[`Change Phone Number: standard flow should render successfully 1`] = `
                   },
                 },
                 "plans_setting": Object {
-                  "enabled": false,
                   "text": Object {
                     "en": "Select your plan below",
                   },

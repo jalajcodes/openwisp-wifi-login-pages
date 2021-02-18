@@ -35,38 +35,7 @@ const createTestProps = function (props, configName = "default") {
     ...props,
   };
 };
-const plans = [
-  {
-    "id": "00589a26-4855-43c4-acbc-a8cfaf25807d",
-    "plan": "Free",
-    "pricing": "no expiration (free) (0 days)",
-    "plan_description": "3 hours per day\n300 MB per day",
-    "currency": "EUR",
-    "verifies_identity": false,
-    "price": "0.00",
-    "has_automatic_renewal": false
-  },
-  {
-    "id": "3c60f25c-638d-43ae-9078-32697efca766",
-    "plan": "Premium",
-    "pricing": "per month (30 days)",
-    "plan_description": "Unlimited time and traffic",
-    "currency": "EUR",
-    "verifies_identity": true,
-    "price": "1.99",
-    "has_automatic_renewal": false
-  },
-  {
-    "id": "d1403161-75cd-4492-bccd-054eee9e155a",
-    "plan": "Premium",
-    "pricing": "per year (365 days)",
-    "plan_description": "Unlimited time and traffic",
-    "currency": "EUR",
-    "verifies_identity": true,
-    "price": "9.99",
-    "has_automatic_renewal": false
-  }
-];
+
 describe("<Registration /> rendering", () => {
   let props;
   let wrapper;
@@ -190,7 +159,6 @@ describe("<Registration /> interactions", () => {
           first_name: "",
           last_name: "",
           location: "",
-          name: "",
           password1: "password1 error",
           password2: "",
           street: "",
@@ -287,72 +255,6 @@ describe("<Registration /> interactions", () => {
     expect(wrapper.find("[htmlFor='last_name']").text()).toEqual("last name (optional)");
     expect(wrapper.find("[htmlFor='location']").text()).toEqual("location (optional)");
   });
-  it("should not show choice form when plans is abscent", () => {
-    axios.mockImplementationOnce(() => {
-      return Promise.resolve({
-        status: 201,
-        statusText: "ok",
-        data: []
-      });
-    })
-      .mockImplementationOnce(() => {
-        return Promise.resolve({
-          status: 201,
-          statusText: "ok",
-          data: []
-        });
-      });
-    props = createTestProps();
-    props.registration.plans_setting.enabled = true;
-    wrapper = shallow(<Registration {...props} />, { context: loadingContextValue });
-    expect(wrapper.find("input[name='plan_selection']").length).toBe(0);
-  });
-  it("should show choice form when plans is present", () => {
-    axios.mockImplementationOnce(() => {
-      return Promise.resolve({
-        status: 201,
-        statusText: "ok",
-        data: plans
-      });
-    })
-      .mockImplementationOnce(() => {
-        return Promise.resolve({
-          status: 201,
-          statusText: "ok",
-          data: plans
-        });
-      });
-    props = createTestProps();
-    props.registration.plans_setting.enabled = true;
-    wrapper = shallow(<Registration {...props} />, { context: loadingContextValue });
-    wrapper.instance().setState({ plans });
-    expect(wrapper.find("input[name='plan_selection']").length).toBe(3);
-  });
-  it("show billing info only when verifies_identity is true", () => {
-    axios.mockImplementationOnce(() => {
-      return Promise.resolve({
-        status: 201,
-        statusText: "ok",
-        data: plans
-      });
-    })
-      .mockImplementationOnce(() => {
-        return Promise.resolve({
-          status: 201,
-          statusText: "ok",
-          data: plans
-        });
-      });
-    props = createTestProps();
-    props.registration.plans_setting.enabled = true;
-    wrapper = shallow(<Registration {...props} />, { context: loadingContextValue });
-    wrapper.instance().setState({ plans, selected_plan: 0 });
-    expect(wrapper.find(".billing-info").length).toBe(0);
-    expect(wrapper.find("input[name='username']").length).toBe(0);
-    wrapper.instance().setState({ selected_plan: 1 });
-    expect(wrapper.find(".billing-info").length).toBe(1);
-    expect(wrapper.find("input[name='username']").length).toBe(1);
-  });
 });
 
 describe("Registration and Mobile Phone Verification interactions", () => {
@@ -444,21 +346,5 @@ describe("Registration and Mobile Phone Verification interactions", () => {
     const mockVerify = component.props.verifyMobileNumber;
     expect(mockVerify.mock.calls.length).toBe(1);
     expect(mockVerify.mock.calls.pop()).toEqual([true]);
-
-    // mobile verification should not be used if verifies_identity of selected plan is true
-    axios.mockImplementationOnce(() => {
-      return Promise.resolve({
-        status: 201,
-        statusText: "CREATED",
-        data: { "payment_url": "http://pay.com" }
-      });
-    });
-    wrapper.find(Registration).instance().props.registration.plans_setting.enabled = true;
-    wrapper.find(Registration).instance().setState({ plans, selected_plan: 1 });
-    wrapper.find("form").simulate("submit", event);
-    await tick();
-    expect(handleSubmit).toHaveBeenCalled();
-    const mockVerify2 = component.props.verifyMobileNumber;
-    expect(mockVerify2.mock.calls.length).toBe(0);
   });
 });

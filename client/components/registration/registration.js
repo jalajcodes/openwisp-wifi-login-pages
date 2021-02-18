@@ -1,4 +1,7 @@
 /* eslint-disable camelcase */
+
+import "./index.css";
+
 import axios from "axios";
 import PropTypes from "prop-types";
 import React from "react";
@@ -37,9 +40,9 @@ export default class Registration extends React.Component {
       errors: {},
       success: false,
       plans: [],
+      gotPlans: false,
       selected_plan: null,
       tax_number: "",
-      name: "",
       street: "",
       city: "",
       zipcode: "",
@@ -53,10 +56,9 @@ export default class Registration extends React.Component {
   }
 
   componentDidMount() {
-    const { orgSlug, registration } = this.props;
-    const { plans_setting } = registration;
+    const { orgSlug, settings } = this.props;
     const plansUrl = plansApiUrl.replace("{orgSlug}", orgSlug);
-    if (plans_setting.enabled) {
+    if (settings.subscriptions) {
       axios({
         method: "get",
         headers: {
@@ -65,7 +67,7 @@ export default class Registration extends React.Component {
         url: plansUrl,
       })
         .then(response => {
-          this.setState({ plans: response.data });
+          this.setState({ plans: response.data, gotPlans: true });
         })
         .catch(error => {
           console.log(`error ${error}`);
@@ -80,8 +82,7 @@ export default class Registration extends React.Component {
   handleSubmit(event) {
     const { setLoading } = this.context;
     event.preventDefault();
-    const { orgSlug, authenticate, verifyMobileNumber, settings, registration } = this.props;
-    const { plans_setting } = registration;
+    const { orgSlug, authenticate, verifyMobileNumber, settings } = this.props;
     const {
       phone_number,
       email,
@@ -96,7 +97,6 @@ export default class Registration extends React.Component {
       selected_plan,
       plans,
       tax_number,
-      name,
       street,
       city,
       zipcode,
@@ -121,9 +121,15 @@ export default class Registration extends React.Component {
       password1,
       password2,
     };
-    [first_name, last_name, birth_date, location].forEach(el => {
-      if (el.length > 0) {
-        postData[el] = el;
+    const optional_fields = {
+      "first_name": first_name,
+      "last_name": last_name,
+      "birth_date": birth_date,
+      "location": location,
+    };
+    Object.keys(optional_fields).forEach(key => {
+      if (optional_fields[key].length > 0) {
+        postData[key] = optional_fields[key];
       }
     });
     // add phone_number if SMS verification is enabled
@@ -139,11 +145,11 @@ export default class Registration extends React.Component {
     if (selected_plan !== null && plan_pricing && plan_pricing.verifies_identity === true) {
       postData.billing_info = JSON.parse(JSON.stringify({
         "tax_number": tax_number,
-        "name": name,
         "street": street,
         "city": city,
         "zipcode": zipcode,
         "country": country,
+        "name": `${first_name} ${last_name}`,
       }));
       postData.username = username;
     }
@@ -169,14 +175,15 @@ export default class Registration extends React.Component {
         });
         // SMS verification flow
         if (
-          (settings.mobile_phone_verification && !plans_setting.enabled) ||
+          (settings.mobile_phone_verification && !settings.subscriptions) ||
           (settings.mobile_phone_verification && !plan_pricing) ||
           (settings.mobile_phone_verification && !plan_pricing.verifies_identity)
         ) {
           verifyMobileNumber(true);
           // simple sign up flow
-        } else if (plans_setting.enabled && plan_pricing && plan_pricing.verifies_identity) {
+        } else if (settings.subscriptions && plan_pricing && plan_pricing.verifies_identity) {
           window.location.href = response.data.payment_url;
+          return;
         } else {
           toast.success(registerSuccess, {
             toastId: mainToastId,
@@ -207,7 +214,6 @@ export default class Registration extends React.Component {
             ...(data.birth_date ? { birth_date: data.birth_date.toString() } : { birth_date: "" }),
             ...(data.location ? { location: data.location.toString() } : { location: "" }),
             ...(data.tax_number ? { tax_number: data.tax_number.toString() } : { tax_number: "" }),
-            ...(data.name ? { name: data.name.toString() } : { name: "" }),
             ...(data.street ? { street: data.street.toString() } : { street: "" }),
             ...(data.city ? { city: data.city.toString() } : { city: "" }),
             ...(data.zipcode ? { zipcode: data.zipcode.toString() } : { zipcode: "" }),
@@ -224,8 +230,8 @@ export default class Registration extends React.Component {
   }
 
   getLabel = (field) => {
-    const { language } = this.props;
-    return field.setting === "mandatory" ? getText(field.label, language) : getText(field.label_optional, language);
+    const { language, settings } = this.props;
+    return (field.setting === "mandatory" || settings.subscriptions) ? getText(field.label, language) : getText(field.label_optional, language);
   }
 
   selectedCountry = (data) => {
@@ -288,7 +294,26 @@ export default class Registration extends React.Component {
     );
   }
 
-  render() {
+  checkVerifiesIdentity = () => {
+    const { selected_plan, plans } = this.state;
+    return (
+      selected_plan !== null && plans[selected_plan].verifies_identity === true
+    );
+  }
+
+  getForm = () => {
+    const { settings } = this.props;
+    const { gotPlans } = this.state;
+
+    if (settings.subscriptions && !gotPlans) {
+      return (
+        <div className="loadContainer"><p className="load" /></div>
+      );
+    }
+    return this.getRegistrationForm();
+  }
+
+  getRegistrationForm = () => {
     const {
       registration,
       settings,
@@ -314,7 +339,6 @@ export default class Registration extends React.Component {
       selected_plan,
       plans,
       tax_number,
-      name,
       street,
       city,
       zipcode,
@@ -404,7 +428,7 @@ export default class Registration extends React.Component {
                       />
                     </div>
 
-                    {selected_plan !== null && plans[selected_plan].verifies_identity === true && (
+                    {this.checkVerifiesIdentity() && (
                       <div className="row username">
                         <label htmlFor="username">
                           {getText(input_fields.username.label, language)}
@@ -432,7 +456,7 @@ export default class Registration extends React.Component {
                       </div>
                     )}
 
-                    {input_fields.first_name.setting !== "disabled" && (
+                    {(input_fields.first_name.setting !== "disabled" || (this.checkVerifiesIdentity() && settings.subscriptions)) && (
                       <div className="row first_name">
                         <label htmlFor="first_name">
                           {this.getLabel(input_fields.first_name)}
@@ -449,7 +473,7 @@ export default class Registration extends React.Component {
                           className={`input ${errors.first_name ? "error" : ""}`}
                           type={input_fields.first_name.type}
                           id="first_name"
-                          required={input_fields.first_name.setting === "mandatory"}
+                          required={input_fields.first_name.setting === "mandatory" || settings.subscriptions}
                           name="first_name"
                           value={first_name}
                           onChange={this.handleChange}
@@ -460,7 +484,7 @@ export default class Registration extends React.Component {
                       </div>
                     )}
 
-                    {input_fields.last_name.setting !== "disabled" && (
+                    {(input_fields.last_name.setting !== "disabled" || (this.checkVerifiesIdentity() && settings.subscriptions)) && (
                       <div className="row last_name">
                         <label htmlFor="last_name">
                           {this.getLabel(input_fields.last_name)}
@@ -477,7 +501,7 @@ export default class Registration extends React.Component {
                           className={`input ${errors.last_name ? "error" : ""}`}
                           type={input_fields.last_name.type}
                           id="last_name"
-                          required={input_fields.last_name.setting === "mandatory"}
+                          required={input_fields.last_name.setting === "mandatory" || settings.subscriptions}
                           name="last_name"
                           value={last_name}
                           onChange={this.handleChange}
@@ -592,34 +616,9 @@ export default class Registration extends React.Component {
                         title={getText(input_fields.password.pattern_description, language)}
                       />
                     </div>
-                    {selected_plan !== null && plans[selected_plan].verifies_identity === true && (
+                    {this.checkVerifiesIdentity() && (
                       <>
                         <div className="billing-info">
-                          <div className="row name">
-                            <label htmlFor="name">
-                              {getText(input_fields.name.label, language)}
-                            </label>
-                            {errors.name && (
-                              <div className="error name">
-                                <span className="icon">!</span>
-                                <span className="text text-name">
-                                  {errors.name}
-                                </span>
-                              </div>
-                            )}
-                            <input
-                              className={`input ${errors.name ? "error" : ""}`}
-                              type={input_fields.name.type}
-                              id="name"
-                              required
-                              name="name"
-                              value={name}
-                              onChange={this.handleChange}
-                              placeholder={getText(input_fields.name.placeholder, language)}
-                              pattern={input_fields.name.pattern}
-                              title={getText(input_fields.name.pattern_description, language)}
-                            />
-                          </div>
                           <div className="row country">
                             <label htmlFor="country">
                               {getText(input_fields.country.label, language)}
@@ -655,8 +654,6 @@ export default class Registration extends React.Component {
                               value={city}
                               onChange={this.handleChange}
                               placeholder={getText(input_fields.city.placeholder, language)}
-                              pattern={input_fields.city.pattern}
-                              title={getText(input_fields.city.pattern_description, language)}
                             />
                           </div>
                           <div className="row street">
@@ -680,8 +677,6 @@ export default class Registration extends React.Component {
                               value={street}
                               onChange={this.handleChange}
                               placeholder={getText(input_fields.street.placeholder, language)}
-                              pattern={input_fields.street.pattern}
-                              title={getText(input_fields.street.pattern_description, language)}
                             />
                           </div>
                           <div className="row zipcode">
@@ -799,11 +794,20 @@ export default class Registration extends React.Component {
       </>
     );
   }
+
+  render() {
+    return (
+      <>
+        {this.getForm()}
+      </>
+    );
+  }
 }
 Registration.contextType = LoadingContext;
 Registration.propTypes = {
   settings: PropTypes.shape({
-    mobile_phone_verification: PropTypes.bool
+    mobile_phone_verification: PropTypes.bool,
+    subscriptions: PropTypes.bool
   }).isRequired,
   registration: PropTypes.shape({
     header: PropTypes.object,
@@ -888,26 +892,15 @@ Registration.propTypes = {
         label: PropTypes.object.isRequired,
         type: PropTypes.string.isRequired
       }),
-      name: PropTypes.shape({
-        type: PropTypes.string.isRequired,
-        label: PropTypes.object.isRequired,
-        placeholder: PropTypes.object.isRequired,
-        pattern: PropTypes.string.isRequired,
-        pattern_description: PropTypes.object.isRequired
-      }),
       city: PropTypes.shape({
         type: PropTypes.string.isRequired,
         label: PropTypes.object.isRequired,
         placeholder: PropTypes.object.isRequired,
-        pattern: PropTypes.string.isRequired,
-        pattern_description: PropTypes.object.isRequired
       }),
       street: PropTypes.shape({
         type: PropTypes.string.isRequired,
         label: PropTypes.object.isRequired,
         placeholder: PropTypes.object.isRequired,
-        pattern: PropTypes.string.isRequired,
-        pattern_description: PropTypes.object.isRequired
       }),
       tax_number: PropTypes.shape({
         type: PropTypes.string.isRequired,
@@ -920,9 +913,8 @@ Registration.propTypes = {
     additional_info_text: PropTypes.object,
     links: PropTypes.object,
     plans_setting: PropTypes.shape({
-      text: PropTypes.string.isRequired,
-      enabled: PropTypes.bool.isRequired,
-    }).isRequired,
+      text: PropTypes.object.isRequired,
+    }),
   }).isRequired,
   language: PropTypes.string.isRequired,
   match: PropTypes.shape({

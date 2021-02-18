@@ -31,6 +31,7 @@ const getPlans = (req, res) => {
                         .send(response.data);
                 })
                 .catch(error => {
+                    console.log(error);
                     if (error.response && error.response.status === 500)
                         logInternalError(error);
                     // forward error

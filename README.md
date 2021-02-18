@@ -285,6 +285,13 @@ The `setting` option can take  any of the following values:
 Keep in mind that this configuration must mirror the
 [configuration of openwisp-radius (OPENWISP_RADIUS_OPTIONAL_REGISTRATION_FIELDS)](https://openwisp-radius.readthedocs.io/en/latest/user/settings.html#openwisp-radius-optional-registration-fields).
 
+#### Periodic subscriptions signup
+
+We can also use this module to sign up for periodic paid plans on OpenWISP module `openwisp-subscriptions`.
+To turn on the features needed for this kind of sign up, we will need to create a new organization configuration
+using the `yarn run add-org` command and answer `yes` when asked the question: 
+`Are you using the premium OpenWISP module openwisp-subscriptions to provide periodic paid subscriptions for WiFi plans?`
+
 ### License
 
 See [LICENSE](https://github.com/openwisp/openwisp-wifi-login-pages/blob/master/LICENSE).
